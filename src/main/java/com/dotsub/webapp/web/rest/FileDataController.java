@@ -25,6 +25,13 @@ public class FileDataController {
         this.fileDataService = fileDataService;
     }
 
+    /**
+     * Upload a new file and create a fileData entity
+     *
+     * @param file the file
+     * @return the created fileData entity
+     * @throws URISyntaxException
+     */
     @PostMapping(path = "/files/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileDataDTO> uploadFile(@RequestParam("file") MultipartFile file) throws URISyntaxException {
         log.debug("Request to upload a new file: {}", file.getOriginalFilename());
