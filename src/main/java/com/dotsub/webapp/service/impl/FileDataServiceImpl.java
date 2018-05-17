@@ -3,6 +3,7 @@ package com.dotsub.webapp.service.impl;
 import com.dotsub.webapp.domain.FileData;
 import com.dotsub.webapp.repository.FileDataRepository;
 import com.dotsub.webapp.service.FileDataService;
+import com.dotsub.webapp.service.StorageService;
 import com.dotsub.webapp.service.dto.FileDataDTO;
 import com.dotsub.webapp.service.mapper.FileDataMapper;
 import org.slf4j.Logger;
@@ -22,14 +23,32 @@ public class FileDataServiceImpl implements FileDataService {
 
     private final FileDataMapper mapper;
 
-    public FileDataServiceImpl(FileDataRepository fileDataRepository, FileDataMapper mapper) {
+    private final StorageService storageService;
+
+    public FileDataServiceImpl(FileDataRepository fileDataRepository, FileDataMapper mapper,
+                               StorageService storageService) {
         this.fileDataRepository = fileDataRepository;
         this.mapper = mapper;
+        this.storageService = storageService;
     }
 
+    /**
+     * Save the file, create new fileData entity
+     * and persist it to the database
+     *
+     * @param file the file to persist
+     * @return the new fileData persisted entity
+     */
     @Override
     public FileDataDTO save(MultipartFile file) {
-        return null;
+        log.debug("Request to save new file: {}", file.getOriginalFilename());
+        String path = storageService.save(file);
+        FileDataDTO fileDataDTO = getFileMetadata(path);
+        if (findByPath(fileDataDTO.getPath()).isPresent()) {
+            throw new RuntimeException("the file name already exists. Rename and re-upload");
+        }
+        FileData entity = mapper.toEntity(fileDataDTO);
+        return mapper.toDto(fileDataRepository.save(entity));
     }
 
     /**
@@ -53,6 +72,7 @@ public class FileDataServiceImpl implements FileDataService {
      */
     @Override
     public void delete(Long id) {
+        log.debug("Request to delete fileData with id: {}", id);
         fileDataRepository.deleteById(id);
     }
 
@@ -65,6 +85,7 @@ public class FileDataServiceImpl implements FileDataService {
      */
     @Override
     public Optional<FileDataDTO> findOne(Long id) {
+        log.debug("Request to find fileData with id: {}", id);
         return fileDataRepository.findById(id)
                 .map(mapper::toDto);
     }
@@ -78,12 +99,25 @@ public class FileDataServiceImpl implements FileDataService {
      */
     @Override
     public Optional<FileDataDTO> findByPath(String path) {
+        log.debug("Request to find fileData in path: {}", path);
         return fileDataRepository.findByPath(path)
                 .map(mapper::toDto);
     }
 
+    /**
+     * Find all the fileData entities in database
+     *
+     * @return a list with all the fileData entities
+     */
     @Override
     public List<FileDataDTO> findAll() {
+        log.debug("Request to find all fileDatas");
         return mapper.toDto(fileDataRepository.findAll());
+    }
+
+    private FileDataDTO getFileMetadata(String path) {
+        FileDataDTO fileData = new FileDataDTO();
+        // TODO: get file metadata
+        return fileData;
     }
 }
