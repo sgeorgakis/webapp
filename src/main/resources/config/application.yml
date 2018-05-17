@@ -1,3 +1,15 @@
+# ===================================================================
+# Spring Boot configuration.
+#
+# ===================================================================
+# Standard Spring Boot properties.
+# Full reference is available at:
+# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# ===================================================================
+logging:
+    level:
+        ROOT: DEBUG
+
 server:
   port: 8080
 
@@ -9,3 +21,10 @@ spring:
     driverClassName: org.h2.Driver
   jpa:
     hibernate.ddl-auto: update
+
+# ===================================================================
+# Application specific properties
+# ===================================================================
+application:
+  upload:
+    saveFolder: ./files
