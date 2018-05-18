@@ -33,6 +33,7 @@ public class AsyncConfiguration implements AsyncConfigurer {
         executor.setMaxPoolSize(applicationProperties.getAsync().getMaxPoolSize());
         executor.setQueueCapacity(applicationProperties.getAsync().getQueueCapacity());
         executor.setThreadNamePrefix("webApp-Executor-");
+        executor.initialize();
         return executor;
     }
 
