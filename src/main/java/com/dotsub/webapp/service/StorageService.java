@@ -9,4 +9,5 @@ public interface StorageService {
     String save(MultipartFile file) throws IOException;
 
     boolean delete(String path);
+
 }
