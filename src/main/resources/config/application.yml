@@ -14,13 +14,27 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: webapp
   datasource:
     url: jdbc:h2:mem:app_db;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driverClassName: org.h2.Driver
   jpa:
-    hibernate.ddl-auto: update
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+  h2:
+    console:
+      enabled: true
+      path: /console
+      settings:
+        trace: false
+        web-allow-others: false
 
 # ===================================================================
 # Application specific properties
@@ -28,3 +42,7 @@ spring:
 application:
   upload:
     saveFolder: ./files
+  async:
+    core-pool-size: 2
+    max-pool-size: 10
+    queue-capacity: 100
