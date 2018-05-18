@@ -11,8 +11,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static com.dotsub.webapp.config.Constants.CREATION_TIME_METADATA;
+import static com.dotsub.webapp.config.Constants.METADATA;
 
 @Service
 public class FileDataServiceImpl implements FileDataService {
@@ -40,13 +49,10 @@ public class FileDataServiceImpl implements FileDataService {
      * @return the new fileData persisted entity
      */
     @Override
-    public FileDataDTO save(MultipartFile file) {
+    public FileDataDTO save(MultipartFile file) throws IOException {
         log.debug("Request to save new file: {}", file.getOriginalFilename());
         String path = storageService.save(file);
         FileDataDTO fileDataDTO = getFileMetadata(path);
-        if (findByPath(fileDataDTO.getPath()).isPresent()) {
-            throw new RuntimeException("the file name already exists. Rename and re-upload");
-        }
         FileData entity = mapper.toEntity(fileDataDTO);
         return mapper.toDto(fileDataRepository.save(entity));
     }
@@ -115,9 +121,15 @@ public class FileDataServiceImpl implements FileDataService {
         return mapper.toDto(fileDataRepository.findAll());
     }
 
-    private FileDataDTO getFileMetadata(String path) {
+    private FileDataDTO getFileMetadata(String path) throws IOException {
+        // TODO: gather additional metadata
         FileDataDTO fileData = new FileDataDTO();
-        // TODO: get file metadata
+        Path filePath = Paths.get(path);
+        Map<String, Object> attributeMap = Files.readAttributes(filePath, METADATA);
+        fileData.setPath(path);
+        fileData.setCreationDate(((FileTime) attributeMap.get(CREATION_TIME_METADATA)).toInstant());
+//        fileData.setDescription((String) attributeMap.get(DESCRIPTION_METADATA));
+//        fileData.setTitle((String) attributeMap.get(TITLE_METADATA));
         return fileData;
     }
 }
