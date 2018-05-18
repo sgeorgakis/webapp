@@ -37,6 +37,6 @@ public class FileDataController {
         log.debug("Request to upload a new file: {}", file.getOriginalFilename());
         FileDataDTO result = fileDataService.save(file);
         return ResponseEntity.created(new URI("/api/files"))
-        .body(result);
+            .body(result);
     }
 }
