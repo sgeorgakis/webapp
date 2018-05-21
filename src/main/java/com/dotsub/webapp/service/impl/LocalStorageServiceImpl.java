@@ -3,6 +3,8 @@ package com.dotsub.webapp.service.impl;
 import com.dotsub.webapp.config.ApplicationProperties;
 import com.dotsub.webapp.service.StorageService;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,11 +12,13 @@ import java.io.File;
 import java.io.IOException;
 
 @Service
-public class LocalStorageService implements StorageService {
+public class LocalStorageServiceImpl implements StorageService {
 
     private final ApplicationProperties applicationProperties;
 
-    public LocalStorageService(ApplicationProperties applicationProperties) {
+    private final Logger log = LoggerFactory.getLogger(LocalStorageServiceImpl.class);
+
+    public LocalStorageServiceImpl(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
     }
 
@@ -30,13 +34,11 @@ public class LocalStorageService implements StorageService {
     public String save(MultipartFile file) throws IOException {
         String fullName = file.getOriginalFilename();
         String path = applicationProperties.getUpload().getSaveFolder();
-        // File targetFile = new File(".");
         File targetFile = new File(FilenameUtils.concat(path, fullName)).getAbsoluteFile();
         if (targetFile.exists()) {
             throw new RuntimeException("File name already exists. Rename the file and try again.");
         }
         file.transferTo(targetFile);
-        // FileUtils.writeByteArrayToFile(targetFile, file.getBytes());
         return targetFile.getPath();
     }
 

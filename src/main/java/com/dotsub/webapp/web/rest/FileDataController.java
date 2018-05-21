@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api")
@@ -41,9 +42,9 @@ public class FileDataController {
      * @throws IOException
      */
     @PostMapping(path = "/files/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FileDataView> uploadFile(@RequestPart("file") MultipartFile file) throws URISyntaxException, IOException {
+    public ResponseEntity<FileDataView> uploadFile(@RequestPart("file") MultipartFile file, @RequestPart("creationDate") Instant creationDate) throws URISyntaxException, IOException {
         log.debug("Request to upload a new file: {}", file.getOriginalFilename());
-        FileDataView result = mapper.toView(fileDataService.save(file));
+        FileDataView result = mapper.toView(fileDataService.save(file, creationDate));
         return ResponseEntity.created(new URI("/api/files"))
             .body(result);
     }

@@ -16,12 +16,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static com.dotsub.webapp.config.Constants.MetaData.CREATION_TIME;
 import static com.dotsub.webapp.config.Constants.MetaData.DESCRIPTION;
 import static com.dotsub.webapp.config.Constants.MetaData.TITLE;
 
@@ -51,13 +49,22 @@ public class FileDataServiceImpl implements FileDataService {
      * @return the new fileData persisted entity
      */
     @Override
-    public FileDataDTO save(MultipartFile file) throws IOException {
+    public FileDataDTO save(MultipartFile file, Instant creationDate) throws IOException {
         log.debug("Request to save new file: {}", file.getOriginalFilename());
-        // TODO: read uploaded file's metadata and then store it
-        String path = storageService.save(file);
-        FileDataDTO fileDataDTO = getFileMetadata(path);
-        FileData entity = mapper.toEntity(fileDataDTO);
-        return mapper.toDto(fileDataRepository.save(entity));
+        String path = null;
+        try {
+            path = storageService.save(file);
+            FileDataDTO fileDataDTO = getFileMetadata(path);
+            fileDataDTO.setCreationDate(creationDate);
+            FileData entity = mapper.toEntity(fileDataDTO);
+            return mapper.toDto(fileDataRepository.save(entity));
+        } catch (Exception e) {
+            log.error("Message: {}", e.getMessage());
+            if (path != null) {
+                storageService.delete(path);
+            }
+            throw e;
+        }
     }
 
     /**
@@ -135,13 +142,11 @@ public class FileDataServiceImpl implements FileDataService {
     private FileDataDTO getFileMetadata(String path) throws IOException {
         FileDataDTO fileData = new FileDataDTO();
         Path filePath = Paths.get(path);
-        Instant creationTime = ((FileTime) Files.getAttribute(filePath, CREATION_TIME.getValue())).toInstant();
         String title = (String) getUserDefinedAttribute(filePath, TITLE);
         String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
 
         fileData.setTitle(title);
         fileData.setDescription(description);
-        fileData.setCreationDate(creationTime);
         return fileData;
     }
 
