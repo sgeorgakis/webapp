@@ -42,9 +42,9 @@ public class FileDataController {
      * @throws IOException
      */
     @PostMapping(path = "/files/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FileDataView> uploadFile(@RequestPart("file") MultipartFile file, @RequestPart("creationDate") Instant creationDate) throws URISyntaxException, IOException {
+    public ResponseEntity<FileDataView> uploadFile(@RequestPart("file") MultipartFile file) throws URISyntaxException, IOException {
         log.debug("Request to upload a new file: {}", file.getOriginalFilename());
-        FileDataView result = mapper.toView(fileDataService.save(file, creationDate));
+        FileDataView result = mapper.toView(fileDataService.save(file, Instant.now()));
         return ResponseEntity.created(new URI("/api/files"))
             .body(result);
     }

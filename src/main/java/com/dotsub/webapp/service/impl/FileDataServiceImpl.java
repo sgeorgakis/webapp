@@ -13,15 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-
-import static com.dotsub.webapp.config.Constants.MetaData.DESCRIPTION;
-import static com.dotsub.webapp.config.Constants.MetaData.TITLE;
 
 @Service
 public class FileDataServiceImpl implements FileDataService {
@@ -142,11 +142,14 @@ public class FileDataServiceImpl implements FileDataService {
     private FileDataDTO getFileMetadata(String path) throws IOException {
         FileDataDTO fileData = new FileDataDTO();
         Path filePath = Paths.get(path);
-        String title = (String) getUserDefinedAttribute(filePath, TITLE);
-        String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
+        UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(filePath, UserDefinedFileAttributeView.class);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(attributeView.size("user:title"));
+        attributeView.read("user:title", byteBuffer);
+//        String title = (String) getUserDefinedAttribute(filePath, TITLE);
+//        String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
 
-        fileData.setTitle(title);
-        fileData.setDescription(description);
+//        fileData.setTitle(title);
+//        fileData.setDescription(description);
         return fileData;
     }
 
@@ -162,7 +165,7 @@ public class FileDataServiceImpl implements FileDataService {
     private Object getUserDefinedAttribute(Path path, Constants.MetaData attribute) throws IOException {
         try {
             return Files.getAttribute(path, attribute.getValue());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | FileSystemException e) {
             log.warn("Exception occured when trying to get attribute {}", attribute.getValue());
             log.warn("Message: {}", e.getMessage());
             return null;

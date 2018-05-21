@@ -4,7 +4,7 @@ public class Constants {
 
     public enum MetaData {
 
-        CREATION_TIME("creationTime"), TITLE("title"), DESCRIPTION("description");
+        TITLE("user:title"), DESCRIPTION("user:description");
 
         private String value;
 
