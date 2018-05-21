@@ -1,5 +1,6 @@
 package com.dotsub.webapp.service.impl;
 
+import com.dotsub.webapp.config.Constants;
 import com.dotsub.webapp.domain.FileData;
 import com.dotsub.webapp.repository.FileDataRepository;
 import com.dotsub.webapp.service.FileDataService;
@@ -11,8 +12,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import static com.dotsub.webapp.config.Constants.MetaData.DESCRIPTION;
+import static com.dotsub.webapp.config.Constants.MetaData.TITLE;
 
 @Service
 public class FileDataServiceImpl implements FileDataService {
@@ -40,15 +49,22 @@ public class FileDataServiceImpl implements FileDataService {
      * @return the new fileData persisted entity
      */
     @Override
-    public FileDataDTO save(MultipartFile file) {
+    public FileDataDTO save(MultipartFile file, Instant creationDate) throws IOException {
         log.debug("Request to save new file: {}", file.getOriginalFilename());
-        String path = storageService.save(file);
-        FileDataDTO fileDataDTO = getFileMetadata(path);
-        if (findByPath(fileDataDTO.getPath()).isPresent()) {
-            throw new RuntimeException("the file name already exists. Rename and re-upload");
+        String path = null;
+        try {
+            path = storageService.save(file);
+            FileDataDTO fileDataDTO = getFileMetadata(path);
+            fileDataDTO.setCreationDate(creationDate);
+            FileData entity = mapper.toEntity(fileDataDTO);
+            return mapper.toDto(fileDataRepository.save(entity));
+        } catch (Exception e) {
+            log.error("Message: {}", e.getMessage());
+            if (path != null) {
+                storageService.delete(path);
+            }
+            throw e;
         }
-        FileData entity = mapper.toEntity(fileDataDTO);
-        return mapper.toDto(fileDataRepository.save(entity));
     }
 
     /**
@@ -115,9 +131,41 @@ public class FileDataServiceImpl implements FileDataService {
         return mapper.toDto(fileDataRepository.findAll());
     }
 
-    private FileDataDTO getFileMetadata(String path) {
+    /**
+     * Create the corresponding fileData entity
+     * using the path to the uploaded file
+     *
+     * @param path the path to the file
+     * @return the created fileData entity
+     * @throws IOException
+     */
+    private FileDataDTO getFileMetadata(String path) throws IOException {
         FileDataDTO fileData = new FileDataDTO();
-        // TODO: get file metadata
+        Path filePath = Paths.get(path);
+        String title = (String) getUserDefinedAttribute(filePath, TITLE);
+        String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
+
+        fileData.setTitle(title);
+        fileData.setDescription(description);
         return fileData;
+    }
+
+    /**
+     * Get the requested metadata of the file.
+     * If it does not exist, return null
+     *
+     * @param path the path to the file
+     * @param attribute the attribute to get the value
+     * @return the attribute's value
+     * @throws IOException
+     */
+    private Object getUserDefinedAttribute(Path path, Constants.MetaData attribute) throws IOException {
+        try {
+            return Files.getAttribute(path, attribute.getValue());
+        } catch (IllegalArgumentException e) {
+            log.warn("Exception occured when trying to get attribute {}", attribute.getValue());
+            log.warn("Message: {}", e.getMessage());
+            return null;
+        }
     }
 }
