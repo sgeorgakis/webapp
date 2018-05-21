@@ -2,11 +2,37 @@ package com.dotsub.webapp.config;
 
 public class Constants {
 
-    public static final String CREATION_TIME_METADATA = "creationTime";
+    public enum MetaData {
 
-    public static final String TITLE_METADATA = "title";
+        CREATION_TIME("creationTime"), TITLE("title"), DESCRIPTION("description");
 
-    public static final String DESCRIPTION_METADATA = "description";
+        private String value;
+        private static String metadataValues;
 
-    public static final String METADATA = String.join(",", CREATION_TIME_METADATA);
+        MetaData(String value) {
+            this.value = value;
+        }
+
+        static {
+            metadataValues = CREATION_TIME.getValue();
+//            StringBuffer buffer = new StringBuffer();
+//            for (MetaData metaData : MetaData.values()) {
+//                buffer.append(metaData.getValue());
+//                buffer.append(",");
+//            }
+//            if (buffer.length() > 0) {
+//                metadataValues = buffer.substring(0, buffer.length() - 1);
+//            } else {
+//                metadataValues = "";
+//            }
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static String getMetadata() {
+            return metadataValues;
+        }
+    }
 }
