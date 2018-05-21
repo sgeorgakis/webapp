@@ -1,5 +1,6 @@
 package com.dotsub.webapp.service.impl;
 
+import com.dotsub.webapp.config.Constants;
 import com.dotsub.webapp.domain.FileData;
 import com.dotsub.webapp.repository.FileDataRepository;
 import com.dotsub.webapp.service.FileDataService;
@@ -16,12 +17,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static com.dotsub.webapp.config.Constants.CREATION_TIME_METADATA;
-import static com.dotsub.webapp.config.Constants.METADATA;
+import static com.dotsub.webapp.config.Constants.MetaData.CREATION_TIME;
+import static com.dotsub.webapp.config.Constants.MetaData.DESCRIPTION;
+import static com.dotsub.webapp.config.Constants.MetaData.TITLE;
 
 @Service
 public class FileDataServiceImpl implements FileDataService {
@@ -51,6 +53,7 @@ public class FileDataServiceImpl implements FileDataService {
     @Override
     public FileDataDTO save(MultipartFile file) throws IOException {
         log.debug("Request to save new file: {}", file.getOriginalFilename());
+        // TODO: read uploaded file's metadata and then store it
         String path = storageService.save(file);
         FileDataDTO fileDataDTO = getFileMetadata(path);
         FileData entity = mapper.toEntity(fileDataDTO);
@@ -121,15 +124,43 @@ public class FileDataServiceImpl implements FileDataService {
         return mapper.toDto(fileDataRepository.findAll());
     }
 
+    /**
+     * Create the corresponding fileData entity
+     * using the path to the uploaded file
+     *
+     * @param path the path to the file
+     * @return the created fileData entity
+     * @throws IOException
+     */
     private FileDataDTO getFileMetadata(String path) throws IOException {
-        // TODO: gather additional metadata
         FileDataDTO fileData = new FileDataDTO();
         Path filePath = Paths.get(path);
-        Map<String, Object> attributeMap = Files.readAttributes(filePath, METADATA);
-        fileData.setPath(path);
-        fileData.setCreationDate(((FileTime) attributeMap.get(CREATION_TIME_METADATA)).toInstant());
-//        fileData.setDescription((String) attributeMap.get(DESCRIPTION_METADATA));
-//        fileData.setTitle((String) attributeMap.get(TITLE_METADATA));
+        Instant creationTime = ((FileTime) Files.getAttribute(filePath, CREATION_TIME.getValue())).toInstant();
+        String title = (String) getUserDefinedAttribute(filePath, TITLE);
+        String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
+
+        fileData.setTitle(title);
+        fileData.setDescription(description);
+        fileData.setCreationDate(creationTime);
         return fileData;
+    }
+
+    /**
+     * Get the requested metadata of the file.
+     * If it does not exist, return null
+     *
+     * @param path the path to the file
+     * @param attribute the attribute to get the value
+     * @return the attribute's value
+     * @throws IOException
+     */
+    private Object getUserDefinedAttribute(Path path, Constants.MetaData attribute) throws IOException {
+        try {
+            return Files.getAttribute(path, attribute.getValue());
+        } catch (IllegalArgumentException e) {
+            log.warn("Exception occured when trying to get attribute {}", attribute.getValue());
+            log.warn("Message: {}", e.getMessage());
+            return null;
+        }
     }
 }
