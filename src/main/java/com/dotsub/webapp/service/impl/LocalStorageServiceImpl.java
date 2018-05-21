@@ -2,7 +2,6 @@ package com.dotsub.webapp.service.impl;
 
 import com.dotsub.webapp.config.ApplicationProperties;
 import com.dotsub.webapp.service.StorageService;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,11 +30,13 @@ public class LocalStorageService implements StorageService {
     public String save(MultipartFile file) throws IOException {
         String fullName = file.getOriginalFilename();
         String path = applicationProperties.getUpload().getSaveFolder();
-        File targetFile = new File(FilenameUtils.concat(path, fullName));
+        // File targetFile = new File(".");
+        File targetFile = new File(FilenameUtils.concat(path, fullName)).getAbsoluteFile();
         if (targetFile.exists()) {
             throw new RuntimeException("File name already exists. Rename the file and try again.");
         }
-        FileUtils.writeByteArrayToFile(targetFile, file.getBytes());
+        file.transferTo(targetFile);
+        // FileUtils.writeByteArrayToFile(targetFile, file.getBytes());
         return targetFile.getPath();
     }
 
