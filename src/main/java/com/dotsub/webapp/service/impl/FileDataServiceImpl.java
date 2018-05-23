@@ -14,14 +14,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import static com.dotsub.webapp.config.Constants.MetaData.DESCRIPTION;
+import static com.dotsub.webapp.config.Constants.MetaData.TITLE;
 
 @Service
 public class FileDataServiceImpl implements FileDataService {
@@ -56,6 +61,26 @@ public class FileDataServiceImpl implements FileDataService {
             path = storageService.save(file);
             FileDataDTO fileDataDTO = getFileMetadata(path);
             fileDataDTO.setCreationDate(creationDate);
+            FileData entity = mapper.toEntity(fileDataDTO);
+            return mapper.toDto(fileDataRepository.save(entity));
+        } catch (Exception e) {
+            log.error("Message: {}", e.getMessage());
+            if (path != null) {
+                storageService.delete(path);
+            }
+            throw e;
+        }
+    }
+
+    public FileDataDTO save(MultipartFile file, String title, String description) throws IOException {
+        log.debug("Request to save new file: {}", file.getOriginalFilename());
+        String path = null;
+        try {
+            path = storageService.save(file);
+            FileDataDTO fileDataDTO = new FileDataDTO();
+            fileDataDTO.setCreationDate(Instant.now());
+            fileDataDTO.setDescription(description);
+            fileDataDTO.setTitle(title);
             FileData entity = mapper.toEntity(fileDataDTO);
             return mapper.toDto(fileDataRepository.save(entity));
         } catch (Exception e) {
@@ -142,14 +167,11 @@ public class FileDataServiceImpl implements FileDataService {
     private FileDataDTO getFileMetadata(String path) throws IOException {
         FileDataDTO fileData = new FileDataDTO();
         Path filePath = Paths.get(path);
-        UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(filePath, UserDefinedFileAttributeView.class);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(attributeView.size("user:title"));
-        attributeView.read("user:title", byteBuffer);
-//        String title = (String) getUserDefinedAttribute(filePath, TITLE);
-//        String description = (String) getUserDefinedAttribute(filePath, DESCRIPTION);
+        String title = new String(getUserDefinedAttribute(filePath, TITLE), StandardCharsets.UTF_8);
+        String description = new String(getUserDefinedAttribute(filePath, DESCRIPTION), StandardCharsets.UTF_8);
 
-//        fileData.setTitle(title);
-//        fileData.setDescription(description);
+        fileData.setTitle(title);
+        fileData.setDescription(description);
         return fileData;
     }
 
@@ -162,13 +184,13 @@ public class FileDataServiceImpl implements FileDataService {
      * @return the attribute's value
      * @throws IOException
      */
-    private Object getUserDefinedAttribute(Path path, Constants.MetaData attribute) throws IOException {
+    private byte[] getUserDefinedAttribute(Path path, Constants.MetaData attribute) throws IOException {
         try {
-            return Files.getAttribute(path, attribute.getValue());
+            return (byte[]) Files.getAttribute(path, attribute.getValue(), LinkOption.NOFOLLOW_LINKS);
         } catch (IllegalArgumentException | FileSystemException e) {
             log.warn("Exception occured when trying to get attribute {}", attribute.getValue());
             log.warn("Message: {}", e.getMessage());
-            return null;
+            return new byte[0];
         }
     }
 }

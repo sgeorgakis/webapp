@@ -12,6 +12,8 @@ public interface FileDataService {
 
     FileDataDTO save(MultipartFile file, Instant creationDate) throws IOException;
 
+    FileDataDTO save(MultipartFile file, String title, String description) throws IOException;
+
     FileDataDTO update(FileDataDTO fileDataDTO);
 
     void delete(Long id);
