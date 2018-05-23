@@ -13,14 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -169,7 +167,6 @@ public class FileDataServiceImpl implements FileDataService {
         Path filePath = Paths.get(path);
         String title = new String(getUserDefinedAttribute(filePath, TITLE), StandardCharsets.UTF_8);
         String description = new String(getUserDefinedAttribute(filePath, DESCRIPTION), StandardCharsets.UTF_8);
-
         fileData.setTitle(title);
         fileData.setDescription(description);
         return fileData;

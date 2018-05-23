@@ -1,6 +1,8 @@
 package com.dotsub.webapp.service.impl;
 
 import com.dotsub.webapp.config.ApplicationProperties;
+import com.dotsub.webapp.config.Constants;
+import com.dotsub.webapp.exception.WebAppException;
 import com.dotsub.webapp.service.StorageService;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -36,7 +38,8 @@ public class LocalStorageServiceImpl implements StorageService {
         String path = applicationProperties.getUpload().getSaveFolder();
         File targetFile = new File(FilenameUtils.concat(path, fullName)).getAbsoluteFile();
         if (targetFile.exists()) {
-            throw new RuntimeException("File name already exists. Rename the file and try again.");
+            throw new WebAppException(Constants.ErrorCode.FILE_ALREADY_EXISTS_ERROR.getCode(),
+                    Constants.ErrorCode.FILE_ALREADY_EXISTS_ERROR.getMessage());
         }
         file.transferTo(targetFile);
         return targetFile.getPath();

@@ -16,6 +16,8 @@ server:
 spring:
   application:
     name: webapp
+  mvc:
+    throw-exception-if-no-handler-found: true
   datasource:
     url: jdbc:h2:mem:app_db;DB_CLOSE_ON_EXIT=FALSE
     username: sa
