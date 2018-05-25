@@ -44,7 +44,7 @@ public class FileDataController {
      * @throws URISyntaxException
      * @throws IOException
      */
-    @PostMapping(path = "/fileDatas/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/file-data/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileDataView> uploadFile(@RequestPart("file") MultipartFile file,
                                                    @RequestPart("title") String title,
                                                    @RequestPart("description") String description)
@@ -60,7 +60,7 @@ public class FileDataController {
      *
      * @return the persisted fileData entities
      */
-    @GetMapping(path = "/fileDatas")
+    @GetMapping(path = "/file-data")
     public ResponseEntity<List<FileDataView>> getAllFileDatas() {
         log.debug("Request to get all FileDatas");
         List<FileDataView> result = mapper.toView(fileDataService.findAll());
