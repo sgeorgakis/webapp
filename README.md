@@ -42,13 +42,13 @@ If the file already exists, an exception is thrown preventing the request to be
 completed normally.
 
 The application uses an H2 database for persistence, saving the data only in-memory.
-If the application is shut down, all the data are lost.
+If the application shuts down, all the data are lost.
 Moreover, the default behaviour is to delete all the uploaded files from the corresponding folder.
 This option can be changed by setting the `application.upload.deleteFilesOnShutdown` property to `false`
 in the `application.yml` file.
 
 When an error occurs in a request, the application raises and exception and handles it accordingly.
-Again, in big loads, it can add delay, as raising an exception is a relatively expensive operation.
+Again, in big loads, this approach can add delay, as raising an exception is a relatively expensive operation.
 
 In the `MessageConverterConfiguration` class, some application properties (such as write dates as timestamps)
 are hardcoded, thus making it impossible to set them from the `application.yml` file,
