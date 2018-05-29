@@ -79,6 +79,7 @@ public class FileDataServiceImpl implements FileDataService {
             fileDataDTO.setCreationDate(Instant.now());
             fileDataDTO.setDescription(description);
             fileDataDTO.setTitle(title);
+            fileDataDTO.setPath(path);
             FileData entity = mapper.toEntity(fileDataDTO);
             return mapper.toDto(fileDataRepository.save(entity));
         } catch (Exception e) {
@@ -150,7 +151,7 @@ public class FileDataServiceImpl implements FileDataService {
      */
     @Override
     public List<FileDataDTO> findAll() {
-        log.debug("Request to find all fileDatas");
+        log.debug("Request to find all fileData");
         return mapper.toDto(fileDataRepository.findAll());
     }
 
