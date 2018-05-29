@@ -8,12 +8,14 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableWebMvc
 @EnableConfigurationProperties(ApplicationProperties.class)
 public class WebApp {
 
