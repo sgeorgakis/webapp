@@ -4,12 +4,14 @@ import com.dotsub.webapp.config.ApplicationProperties;
 import com.dotsub.webapp.config.Constants;
 import com.dotsub.webapp.exception.WebAppException;
 import com.dotsub.webapp.service.StorageService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 
@@ -55,5 +57,16 @@ public class LocalStorageServiceImpl implements StorageService {
     public boolean delete(String path) {
         File targetFile = new File(path);
         return targetFile.delete();
+    }
+
+    @PreDestroy
+    private void cleanUploadFolder() {
+        if (applicationProperties.getUpload().getDeleteFilesOnShutDown()) {
+            try {
+                FileUtils.cleanDirectory(new File(applicationProperties.getUpload().getSaveFolder()));
+            } catch (IOException e) {
+                log.error("Could not clean save folder. {}", e.getMessage());
+            }
+        }
     }
 }

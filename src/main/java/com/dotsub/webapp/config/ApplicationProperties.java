@@ -25,12 +25,22 @@ public class ApplicationProperties {
 
         private String saveFolder = "./";
 
+        private Boolean deleteFilesOnShutDown = true;
+
         public String getSaveFolder() {
             return saveFolder;
         }
 
         public void setSaveFolder(String saveFolder) {
             this.saveFolder = saveFolder;
+        }
+
+        public Boolean getDeleteFilesOnShutDown() {
+            return deleteFilesOnShutDown;
+        }
+
+        public void setDeleteFilesOnShutDown(Boolean deleteFilesOnShutDown) {
+            this.deleteFilesOnShutDown = deleteFilesOnShutDown;
         }
     }
 
