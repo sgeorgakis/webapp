@@ -60,8 +60,8 @@ public class LocalStorageServiceImpl implements StorageService {
     }
 
     @PreDestroy
-    private void cleanUploadFolder() {
-        if (applicationProperties.getUpload().getDeleteFilesOnShutDown()) {
+    public void cleanUploadFolder() {
+        if (applicationProperties.getUpload().getDeleteFilesOnShutdown()) {
             try {
                 FileUtils.cleanDirectory(new File(applicationProperties.getUpload().getSaveFolder()));
             } catch (IOException e) {

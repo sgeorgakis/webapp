@@ -43,8 +43,8 @@ spring:
 # ===================================================================
 application:
   upload:
-    saveFolder: ./files
-    deleteFilesOnShutDown: true
+    save-folder: ./files
+    delete-files-on-shutdown: true
   async:
     core-pool-size: 2
     max-pool-size: 10

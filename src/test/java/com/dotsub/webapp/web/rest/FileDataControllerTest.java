@@ -4,6 +4,7 @@ import com.dotsub.webapp.WebApp;
 import com.dotsub.webapp.service.FileDataService;
 import com.dotsub.webapp.service.StorageService;
 import com.dotsub.webapp.service.mapper.FileDataMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -150,5 +151,14 @@ public class FileDataControllerTest {
                     .andExpect(jsonPath("$.code").value(FILE_ALREADY_EXISTS_ERROR.getCode()))
                     .andExpect(jsonPath("$.message").value(FILE_ALREADY_EXISTS_ERROR.getMessage()));
         }
+    }
+
+    @After
+    public void cleanUp() {
+        fileDataService.findAll()
+                .forEach(f -> {
+                    storageService.delete(f.getPath());
+                    fileDataService.delete(f.getId());
+                });
     }
 }
